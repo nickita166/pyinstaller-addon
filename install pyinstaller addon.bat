@@ -1,39 +1,77 @@
 @echo off
-:START
+setlocal
 
 set "URL=https://github.com/nickita166/pyinstaller-addon/raw/refs/heads/main/pyinstaller.bat"
-set "DIR=\Scripts"
+set "UNINSTALL_URL=https://github.com/nickita166/pyinstaller-addon/raw/refs/heads/main/Uninstaller.bat"
 
+set "INSTALL_DIR=%ProgramData%\Pyinstalleraddon"
+set "UNINSTALLER=%INSTALL_DIR%\Uninstaller.bat"
+
+echo Searching for Python installation...
+
+for /f "delims=" %%i in ('where python 2^>nul') do (
+    set "PYTHON_PATH=%%i"
+    goto FOUND
+)
+
+echo Could not auto-detect Python.
+goto MANUAL
+
+:FOUND
+for %%i in ("%PYTHON_PATH%") do set "DEST1=%%~dpi"
+goto CHECK
+
+:MANUAL
 set /p "DEST1=Enter where Python is located: "
 
+:CHECK
 if not exist "%DEST1%\Scripts" (
-    echo.
-    echo "%DEST1%" is not a valid Python install path.
-    echo Run "where python" in CMD, then remove python.exe from the end of the path.
-    echo.
+    echo Invalid Python path.
     pause
-    goto START
+    exit /b
 )
 
-set "DEST=%DEST1%%DIR%\pyinstaller.bat"
-set "REDEST=%DEST1%%DIR%"
+set "SCRIPTS=%DEST1%\Scripts"
+set "DEST=%SCRIPTS%\pyinstaller.bat"
 
-if exist "%REDEST%\pyinstaller.exe" (
-    ren "%REDEST%\pyinstaller.exe" "pyinstaller1.exe"
-) else (
-echo please install pyinstaller with "pip install pyinstaller"
-)
-
-echo Downloading file from GitHub...
-
-curl -L -s -o "%DEST%" "%URL%"
-
+:: Check already installed
 if exist "%DEST%" (
-    echo File installed to: "%DEST%"
-) else (
-    echo ERROR: Download failed.
+    echo Already installed.
+    pause
+    exit /b
 )
+
+:: Rename original pyinstaller
+if exist "%SCRIPTS%\pyinstaller.exe" (
+    ren "%SCRIPTS%\pyinstaller.exe" "pyinstaller1.exe"
+)
+
+echo Installing...
+
+curl -L -o "%DEST%" "%URL%"
+
+:: Create install directory
+if not exist "%INSTALL_DIR%" mkdir "%INSTALL_DIR%"
+
+:: Download uninstaller
+curl -L -s -o "%UNINSTALLER%" "%UNINSTALL_URL%"
+
+:: -----------------------------
+:: Add uninstall entry to registry
+:: -----------------------------
+set "APPNAME=PyInstaller Addon"
+set "KEY=HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\PyInstallerAddon"
+
+reg add "%KEY%" /f >nul
+reg add "%KEY%" /v "DisplayName" /t REG_SZ /d "%APPNAME%" /f >nul
+reg add "%KEY%" /v "DisplayVersion" /t REG_SZ /d "1.0" /f >nul
+reg add "%KEY%" /v "Publisher" /t REG_SZ /d "nickita166" /f >nul
+reg add "%KEY%" /v "InstallLocation" /t REG_SZ /d "%INSTALL_DIR%" /f >nul
+reg add "%KEY%" /v "UninstallString" /t REG_SZ /d "\"%UNINSTALLER%\"" /f >nul
+reg add "%KEY%" /v "NoModify" /t REG_DWORD /d 1 /f >nul
+reg add "%KEY%" /v "NoRepair" /t REG_DWORD /d 1 /f >nul
 
 echo.
-echo Press any key to close
+echo Installation complete.
+echo Appears in Installed Apps now.
 pause > nul
