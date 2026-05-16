@@ -27,8 +27,7 @@ set /p "DEST1=Enter where Python is located: "
 :CHECK
 if not exist "%DEST1%\Scripts" (
     echo Invalid Python path.
-    pause
-    exit /b
+    exit /b 1
 )
 
 set "SCRIPTS=%DEST1%\Scripts"
@@ -37,8 +36,7 @@ set "DEST=%SCRIPTS%\pyinstaller.bat"
 :: Check already installed
 if exist "%DEST%" (
     echo Already installed.
-    pause
-    exit /b
+    exit /b 2
 )
 
 :: Rename original pyinstaller
