@@ -74,4 +74,3 @@ reg add "%KEY%" /v "NoRepair" /t REG_DWORD /d 1 /f >nul
 echo.
 echo Installation complete.
 echo Appears in Installed Apps now.
-pause > nul
