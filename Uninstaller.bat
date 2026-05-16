@@ -1,18 +1,22 @@
 @echo off
 setlocal
 
-set "SELF=%~f0"
-set "INSTALL_DIR=%ProgramData%\Pyinstalleraddon"
-set "KEY=HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\PyInstallerAddon"
+@echo off
+:: --- Admin check ---
+net session >nul 2>&1
+if %errorlevel% neq 0 (
+    powershell -Command "Start-Process '%~f0' -Verb RunAs"
+    exit /b
+)
 
-echo ==================================
+set "PY_KEY=HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\PyInstallerAddon"
+
+echo ===============================
 echo   PyInstaller Addon Uninstaller
-echo ==================================
+echo ===============================
 echo.
 
-:: ---------------------------
-:: Auto detect Python
-:: ---------------------------
+:: ------------------ AUTO DETECT PYTHON ------------------
 echo Detecting Python...
 
 for /f "delims=" %%i in ('where python 2^>nul') do (
@@ -41,35 +45,35 @@ set "SCRIPTS=%PYTHON_DIR%\Scripts"
 
 echo Removing addon files...
 
+:: Remove addon script
 if exist "%SCRIPTS%\pyinstaller.bat" (
     del /f /q "%SCRIPTS%\pyinstaller.bat"
-    echo Removed pyinstaller.bat
 )
 
+:: Restore original pyinstaller
 if exist "%SCRIPTS%\pyinstaller1.exe" (
     ren "%SCRIPTS%\pyinstaller1.exe" "pyinstaller.exe"
-    echo Restored pyinstaller.exe
 )
 
-:: ---------------------------
-:: Registry cleanup
-:: ---------------------------
-reg delete "%KEY%" /f >nul 2>&1
+:: Remove registry entry
+reg delete "%PY_KEY%" /f >nul 2>&1
 
 echo.
 
-:: ---------------------------
-:: Self cleanup system
-:: ---------------------------
-if /i "%SELF%"=="%ProgramData%\Pyinstalleraddon\Uninstaller.bat" (
-    echo Scheduling full cleanup...
+echo Cleaning ProgramData folder...
 
-    start "" /min cmd /c ^
-    "timeout /t 3 >nul && rmdir /s /q \"%ProgramData%\Pyinstalleraddon\""
-) else (
+:: FORCE DELETE EVERYTHING (IMPORTANT PART)
+if exist "%ProgramData%\Pyinstalleraddon" (
     rmdir /s /q "%ProgramData%\Pyinstalleraddon"
+)
+
+:: verify
+if exist "%ProgramData%\Pyinstalleraddon" (
+    echo WARNING: Folder could not be fully removed.
+) else (
+    echo Fully removed: %ProgramData%\Pyinstalleraddon
 )
 
 echo.
 echo Uninstall complete.
-exit /b
+pause > nul
